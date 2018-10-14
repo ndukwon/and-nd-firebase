@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String mUsername;
 
+    // Firebase Realtime Database
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mMessageDatabaseReference;        // Messages를 위한 DB를 Reference하기 위해
     private ChildEventListener mChildEventListener;             // Message가 추가된 사항을 받기 위해
