@@ -142,29 +142,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Firebase Realtime Database
-        mChildEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                FriendlyMessage friendlyMessage = dataSnapshot.getValue(FriendlyMessage.class);       // Deserialize the message
-
-                mMessageAdapter.add(friendlyMessage);
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {}
-        };
-        mMessageDatabaseReference.addChildEventListener(mChildEventListener);
-
         // Firebase Authentication
         mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -172,11 +149,12 @@ public class MainActivity extends AppCompatActivity {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     // Signed in
+                    onSignedInInit(user.getDisplayName());
                     Toast.makeText(MainActivity.this, "Welcome!!", Toast.LENGTH_SHORT).show();
                 } else {
                     // Signed out -> Sign in
+                    onSignedOutCleanUp();
                     // https://firebase.google.com/docs/auth/android/firebaseui
-
                     // Choose authentication providers
                     List<AuthUI.IdpConfig> providers = Arrays.asList(
                             new AuthUI.IdpConfig.EmailBuilder().build(),
@@ -218,5 +196,56 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+    }
+
+    private void onSignedInInit(String username) {
+        mUsername = username;
+
+        attachDatabaseListener();               // Chat을 로그인 이후에 사용할 수 있도록
+    }
+
+    private void onSignedOutCleanUp() {
+        mUsername = ANONYMOUS;
+        mMessageAdapter.clear();                // 로그아웃하면 사용안하게...
+
+        detachDatabaseListener();
+    }
+
+    private void attachDatabaseListener() {
+        // Firebase Realtime Database
+        if (mChildEventListener == null) {
+            mChildEventListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    FriendlyMessage friendlyMessage = dataSnapshot.getValue(FriendlyMessage.class);       // Deserialize the message
+
+                    mMessageAdapter.add(friendlyMessage);
+                }
+
+                @Override
+                public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                }
+
+                @Override
+                public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                }
+
+                @Override
+                public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                }
+            };
+        }
+        mMessageDatabaseReference.addChildEventListener(mChildEventListener);
+    }
+
+    private void detachDatabaseListener() {
+        if (mChildEventListener != null) {
+            mMessageDatabaseReference.removeEventListener(mChildEventListener);
+            mChildEventListener = null;
+        }
     }
 }
