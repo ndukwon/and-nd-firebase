@@ -45,6 +45,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:16.0.1'           // Realtime Database
     implementation 'com.firebaseui:firebase-ui-auth:4.0.0'                  // Authentication
     implementation 'com.google.firebase:firebase-storage:16.0.1'            // Storage
+    implementation 'com.google.firebase:firebase-messaging:17.3.0'          // Push
 }
 
 apply plugin: 'com.google.gms.google-services'
